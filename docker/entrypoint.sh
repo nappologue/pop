@@ -26,8 +26,7 @@ if [ ! -f "migrations/env.py" ]; then
   
   # Initialize Flask-Migrate
   echo "Creating migrations directory..."
-  flask db init
-  if [ $? -ne 0 ]; then
+  if ! flask db init; then
     echo "✗ Error: Failed to initialize Flask-Migrate"
     exit 1
   fi
@@ -35,8 +34,7 @@ if [ ! -f "migrations/env.py" ]; then
   
   # Create initial migration
   echo "Generating initial migration..."
-  flask db migrate -m "Initial database schema with authentication and RBAC"
-  if [ $? -ne 0 ]; then
+  if ! flask db migrate -m "Initial database schema with authentication and RBAC"; then
     echo "✗ Error: Failed to generate initial migration"
     exit 1
   fi
@@ -44,8 +42,7 @@ if [ ! -f "migrations/env.py" ]; then
   
   # Apply migrations
   echo "Applying database migrations..."
-  flask db upgrade
-  if [ $? -ne 0 ]; then
+  if ! flask db upgrade; then
     echo "✗ Error: Failed to apply migrations"
     exit 1
   fi
@@ -53,8 +50,7 @@ if [ ! -f "migrations/env.py" ]; then
   
   # Initialize database with roles and admin user
   echo "Initializing database with roles and admin user..."
-  python init_db.py
-  if [ $? -ne 0 ]; then
+  if ! python init_db.py; then
     echo "✗ Error: Failed to initialize database"
     exit 1
   fi
@@ -63,8 +59,7 @@ if [ ! -f "migrations/env.py" ]; then
 else
   # Migrations already initialized, just run upgrades
   echo "Running database migrations..."
-  flask db upgrade
-  if [ $? -ne 0 ]; then
+  if ! flask db upgrade; then
     echo "✗ Error: Failed to apply migrations"
     exit 1
   fi
