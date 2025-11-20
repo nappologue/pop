@@ -3,6 +3,7 @@ TrainingProgress model for tracking user progress through trainings.
 """
 
 from datetime import datetime
+from sqlalchemy.orm.attributes import flag_modified
 from app import db
 
 
@@ -63,7 +64,7 @@ class TrainingProgress(db.Model):
         if slide_index not in self.completed_slides:
             self.completed_slides.append(slide_index)
             # SQLAlchemy requires explicit flag for JSON field updates
-            db.session.flag_modified(self, 'completed_slides')
+            flag_modified(self, 'completed_slides')
         
         # Update status
         if self.status == 'not_started':
@@ -92,7 +93,7 @@ class TrainingProgress(db.Model):
             'passed': passed,
             'timestamp': datetime.utcnow().isoformat()
         })
-        db.session.flag_modified(self, 'quiz_attempts')
+        flag_modified(self, 'quiz_attempts')
         self.last_accessed_at = datetime.utcnow()
     
     def mark_completed(self):
