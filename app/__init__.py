@@ -94,6 +94,12 @@ def create_app(config=None):
     from app.routes import auth
     app.register_blueprint(auth.bp)
     
+    from app.routes import training
+    app.register_blueprint(training.bp)
+    
+    from app.routes.admin import training as admin_training
+    app.register_blueprint(admin_training.bp)
+    
     # Error handlers
     @app.errorhandler(404)
     def not_found_error(error):
