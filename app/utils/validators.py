@@ -162,11 +162,11 @@ def sanitize_html_content(content):
         'th': ['colspan', 'rowspan']
     }
     
-    # Remove script tags and their content
-    content = re.sub(r'<script[^>]*>.*?</script>', '', content, flags=re.DOTALL | re.IGNORECASE)
+    # Remove script tags and their content (handle any whitespace in closing tags)
+    content = re.sub(r'<script[^>]*>.*?</\s*script[^>]*>', '', content, flags=re.DOTALL | re.IGNORECASE)
     
-    # Remove style tags and their content
-    content = re.sub(r'<style[^>]*>.*?</style>', '', content, flags=re.DOTALL | re.IGNORECASE)
+    # Remove style tags and their content (handle any whitespace in closing tags)
+    content = re.sub(r'<style[^>]*>.*?</\s*style[^>]*>', '', content, flags=re.DOTALL | re.IGNORECASE)
     
     # Remove on* event handlers
     content = re.sub(r'\s*on\w+\s*=\s*["\'][^"\']*["\']', '', content, flags=re.IGNORECASE)

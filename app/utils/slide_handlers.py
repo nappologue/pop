@@ -224,25 +224,25 @@ def _convert_to_embed_url(video_url):
     Returns:
         str: Embed-ready URL
     """
-    # YouTube URLs
-    if 'youtube.com/watch' in video_url:
-        # Extract video ID from URL like https://www.youtube.com/watch?v=VIDEO_ID
-        video_id = video_url.split('v=')[1].split('&')[0] if 'v=' in video_url else None
-        if video_id:
-            return f'https://www.youtube.com/embed/{video_id}'
+    import re
     
-    elif 'youtu.be/' in video_url:
-        # Extract video ID from short URL like https://youtu.be/VIDEO_ID
-        video_id = video_url.split('youtu.be/')[1].split('?')[0] if 'youtu.be/' in video_url else None
-        if video_id:
-            return f'https://www.youtube.com/embed/{video_id}'
+    # YouTube URLs
+    youtube_match = re.match(r'^https?://(?:www\.)?youtube\.com/watch\?.*v=([a-zA-Z0-9_-]+)', video_url)
+    if youtube_match:
+        video_id = youtube_match.group(1)
+        return f'https://www.youtube.com/embed/{video_id}'
+    
+    # YouTube short URLs
+    youtu_be_match = re.match(r'^https?://youtu\.be/([a-zA-Z0-9_-]+)', video_url)
+    if youtu_be_match:
+        video_id = youtu_be_match.group(1)
+        return f'https://www.youtube.com/embed/{video_id}'
     
     # Vimeo URLs
-    elif 'vimeo.com/' in video_url:
-        # Extract video ID from URL like https://vimeo.com/VIDEO_ID
-        video_id = video_url.split('vimeo.com/')[1].split('?')[0] if 'vimeo.com/' in video_url else None
-        if video_id:
-            return f'https://player.vimeo.com/video/{video_id}'
+    vimeo_match = re.match(r'^https?://(?:www\.)?vimeo\.com/(\d+)', video_url)
+    if vimeo_match:
+        video_id = vimeo_match.group(1)
+        return f'https://player.vimeo.com/video/{video_id}'
     
     # If already an embed URL or unknown format, return as-is
     return video_url
