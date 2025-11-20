@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}Statistiques - Administration - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">Statistiques détaillées</h1>
+            <p class="lead text-muted">Analyses et rapports sur les formations et utilisateurs</p>
+        </div>
+        <div class="col-auto">
+            <button type="button" class="btn btn-primary" id="exportBtn">
+                <i class="bi bi-download"></i> Exporter les données
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Filtres</h5>
+        </div>
+        <div class="card-body">
+            <form id="filtersForm" class="row g-3">
+                <div class="col-md-3">
+                    <label for="dateFrom" class="form-label">Date de début</label>
+                    <input type="date" class="form-control" id="dateFrom" name="date_from">
+                </div>
+                <div class="col-md-3">
+                    <label for="dateTo" class="form-label">Date de fin</label>
+                    <input type="date" class="form-control" id="dateTo" name="date_to">
+                </div>
+                <div class="col-md-2">
+                    <label for="teamFilter" class="form-label">Équipe</label>
+                    <select class="form-select" id="teamFilter" name="team">
+                        <option value="">Toutes</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="locationFilter" class="form-label">Localisation</label>
+                    <select class="form-select" id="locationFilter" name="location">
+                        <option value="">Toutes</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="button" class="btn btn-primary d-block w-100" onclick="applyFilters()">
+                        <i class="bi bi-funnel"></i> Appliquer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Aggregate Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h6 class="card-subtitle mb-2 text-muted">Taux de complétion global</h6>
+                    <h2 class="display-4 text-success" id="completionRate">--</h2>
+                    <div class="progress mt-3" style="height: 10px;">
+                        <div class="progress-bar bg-success" id="completionRateBar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h6 class="card-subtitle mb-2 text-muted">Score moyen</h6>
+                    <h2 class="display-4 text-warning" id="averageScore">--</h2>
+                    <div class="progress mt-3" style="height: 10px;">
+                        <div class="progress-bar bg-warning" id="averageScoreBar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h6 class="card-subtitle mb-2 text-muted">Utilisateurs actifs</h6>
+                    <h2 class="display-4 text-primary" id="activeUsers">--</h2>
+                    <small class="text-muted">Cette période</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Complétions par équipe</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="teamChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Complétions par localisation</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="locationChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Statistics Table -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Statistiques par utilisateur</h5>
+        </div>
+        <div class="card-body">
+            <table id="userStatsTable" class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Email</th>
+                        <th>Équipe</th>
+                        <th>Localisation</th>
+                        <th>Ancienneté</th>
+                        <th>Formations complétées</th>
+                        <th>Score moyen</th>
+                        <th>Dernière activité</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be loaded via AJAX -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+<script>
+    let userStatsTable;
+    let teamChart, locationChart;
+
+    $(document).ready(function() {
+        // Initialize DataTable
+        userStatsTable = $('#userStatsTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
+            },
+            ajax: {
+                url: '/admin/api/statistics/users',
+                dataSrc: 'data'
+            },
+            columns: [
+                { data: 'name' },
+                { data: 'email' },
+                { data: 'team' },
+                { data: 'location' },
+                { data: 'anciennete' },
+                { data: 'completed_trainings' },
+                { 
+                    data: 'average_score',
+                    render: function(data) {
+                        return data + '%';
+                    }
+                },
+                { data: 'last_activity' }
+            ],
+            pageLength: 25,
+            order: [[5, 'desc']] // Sort by completed trainings
+        });
+
+        // Load aggregate statistics
+        loadAggregateStats();
+
+        // Initialize charts
+        initializeCharts();
+    });
+
+    function loadAggregateStats() {
+        fetch('/admin/api/statistics/overview')
+            .then(response => response.json())
+            .then(data => {
+                // Update completion rate
+                const completionRate = data.completion_rate || 0;
+                $('#completionRate').text(completionRate + '%');
+                $('#completionRateBar').css('width', completionRate + '%');
+
+                // Update average score
+                const avgScore = data.avg_quiz_score || 0;
+                $('#averageScore').text(avgScore + '%');
+                $('#averageScoreBar').css('width', avgScore + '%');
+
+                // Update active users
+                $('#activeUsers').text(data.total_users || 0);
+            });
+    }
+
+    function initializeCharts() {
+        // Team Chart
+        const teamCtx = document.getElementById('teamChart').getContext('2d');
+        teamChart = new Chart(teamCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Ventes', 'Marketing', 'Ingénierie', 'Support', 'RH'],
+                datasets: [{
+                    label: 'Formations complétées',
+                    data: [12, 19, 15, 8, 10],
+                    backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+
+        // Location Chart
+        const locationCtx = document.getElementById('locationChart').getContext('2d');
+        locationChart = new Chart(locationCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Paris', 'Lyon', 'Marseille', 'Toulouse', 'Bordeaux'],
+                datasets: [{
+                    data: [30, 20, 15, 20, 15],
+                    backgroundColor: [
+                        'rgba(13, 110, 253, 0.7)',
+                        'rgba(25, 135, 84, 0.7)',
+                        'rgba(255, 193, 7, 0.7)',
+                        'rgba(220, 53, 69, 0.7)',
+                        'rgba(13, 202, 240, 0.7)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+    }
+
+    function applyFilters() {
+        // Reload table with filters
+        userStatsTable.ajax.reload();
+        
+        // Reload charts with filters
+        // Implementation would depend on backend API
+    }
+
+    $('#exportBtn').on('click', function() {
+        // Create CSV from table data
+        let csv = 'Nom,Email,Équipe,Localisation,Ancienneté,Formations complétées,Score moyen,Dernière activité\n';
+        
+        userStatsTable.rows().every(function() {
+            const data = this.data();
+            const row = [
+                data.name,
+                data.email,
+                data.team,
+                data.location,
+                data.anciennete,
+                data.completed_trainings,
+                data.average_score + '%',
+                data.last_activity
+            ];
+            csv += row.join(',') + '\n';
+        });
+        
+        // Download CSV
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'statistiques_' + new Date().toISOString().split('T')[0] + '.csv';
+        link.click();
+    });
+</script>
+{% endblock %}
