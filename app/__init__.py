@@ -100,6 +100,9 @@ def create_app(config=None):
     from app.routes import quiz
     app.register_blueprint(quiz.bp)
     
+    from app.routes.admin import dashboard as admin_dashboard
+    app.register_blueprint(admin_dashboard.bp)
+    
     from app.routes.admin import training as admin_training
     app.register_blueprint(admin_training.bp)
     
