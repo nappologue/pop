@@ -23,37 +23,42 @@ def create_default_roles():
         tuple: (admin_role, manager_role, user_role)
     """
     # Admin role - all permissions
+    admin_permissions = {
+        'view_dashboard': True,
+        'view_trainings': True,
+        'create_training': True,
+        'edit_training': True,
+        'delete_training': True,
+        'publish_training': True,
+        'view_all_trainings': True,
+        'manage_trainings': True,
+        'create_quiz': True,
+        'edit_quiz': True,
+        'delete_quiz': True,
+        'manage_quizzes': True,
+        'view_users': True,
+        'create_user': True,
+        'edit_user': True,
+        'delete_user': True,
+        'view_roles': True,
+        'manage_roles': True,
+        'view_all_stats': True,
+        'view_team_stats': True,
+        'export_data': True,
+        'manage_settings': True
+    }
+    
     admin_role = Role.query.filter_by(name='admin').first()
     if not admin_role:
         admin_role = Role(
             name='admin',
-            permissions={
-                'view_dashboard': True,
-                'view_trainings': True,
-                'create_training': True,
-                'edit_training': True,
-                'delete_training': True,
-                'publish_training': True,
-                'view_all_trainings': True,
-                'create_quiz': True,
-                'edit_quiz': True,
-                'delete_quiz': True,
-                'view_users': True,
-                'create_user': True,
-                'edit_user': True,
-                'delete_user': True,
-                'view_roles': True,
-                'manage_roles': True,
-                'view_all_stats': True,
-                'view_team_stats': True,
-                'export_data': True,
-                'manage_settings': True
-            }
+            permissions=admin_permissions
         )
         db.session.add(admin_role)
         print("✓ Created admin role")
     else:
-        print("- Admin role already exists")
+        admin_role.permissions = admin_permissions
+        print("✓ Updated admin role permissions")
     
     # Manager role - manage trainings and view team stats
     manager_role = Role.query.filter_by(name='manager').first()
