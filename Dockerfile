@@ -33,6 +33,7 @@ COPY --chown=appuser:appuser app/ /app/app/
 COPY --chown=appuser:appuser templates/ /app/templates/
 COPY --chown=appuser:appuser migrations/ /app/migrations/
 COPY --chown=appuser:appuser supervisord.conf /app/
+COPY --chown=appuser:appuser init_db.py /app/
 
 # Copy nginx configuration files
 COPY nginx/ /app/nginx/
