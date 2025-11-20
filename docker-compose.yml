@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pop-app
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - MODE=${MODE}
+      - FLASK_APP=${FLASK_APP}
+      - FLASK_ENV=${FLASK_ENV}
+      - SECRET_KEY=${SECRET_KEY}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - DATABASE_URL=${DATABASE_URL}
+      - DOMAIN_NAME=${DOMAIN_NAME}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+      - APP_NAME=${APP_NAME}
+      - ITEMS_PER_PAGE=${ITEMS_PER_PAGE}
+    volumes:
+      - ./app:/app/app
+      - ./templates:/app/templates
+      - ./nginx:/app/nginx
+      - ./migrations:/app/migrations
+      - postgres-data:/var/lib/postgresql/data
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - static-files:/app/static
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - pop-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: pop-postgres
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pop-network
+
+volumes:
+  postgres-data:
+  certbot-etc:
+  certbot-var:
+  static-files:
+
+networks:
+  pop-network:
+    driver: bridge
