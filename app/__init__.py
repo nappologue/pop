@@ -58,6 +58,7 @@ def create_app(config=None):
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Veuillez vous connecter pour accéder à cette page.'
     login_manager.login_message_category = 'info'
+    login_manager.session_protection = 'strong'
     
     # User loader for Flask-Login
     @login_manager.user_loader
@@ -86,12 +87,9 @@ def create_app(config=None):
                 flash('Votre compte a été désactivé. Veuillez contacter un administrateur.', 'error')
                 return redirect(url_for('auth.login'))
     
-    # Register blueprints (will be added in later steps)
-    # from app.routes import auth, training, quiz, admin
-    # app.register_blueprint(auth.bp)
-    # app.register_blueprint(training.bp)
-    # app.register_blueprint(quiz.bp)
-    # app.register_blueprint(admin.bp)
+    # Register blueprints
+    from app.routes import auth
+    app.register_blueprint(auth.bp)
     
     # Error handlers
     @app.errorhandler(404)
