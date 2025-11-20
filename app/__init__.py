@@ -10,6 +10,7 @@ from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
+from flask_wtf.csrf import CSRFProtect
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -19,6 +20,7 @@ load_dotenv()
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
+csrf = CSRFProtect()
 
 
 def create_app(config=None):
@@ -53,11 +55,13 @@ def create_app(config=None):
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
+    csrf.init_app(app)
     
     # Configure Flask-Login
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Veuillez vous connecter pour accéder à cette page.'
     login_manager.login_message_category = 'info'
+    login_manager.session_protection = 'strong'
     
     # User loader for Flask-Login
     @login_manager.user_loader
@@ -86,12 +90,9 @@ def create_app(config=None):
                 flash('Votre compte a été désactivé. Veuillez contacter un administrateur.', 'error')
                 return redirect(url_for('auth.login'))
     
-    # Register blueprints (will be added in later steps)
-    # from app.routes import auth, training, quiz, admin
-    # app.register_blueprint(auth.bp)
-    # app.register_blueprint(training.bp)
-    # app.register_blueprint(quiz.bp)
-    # app.register_blueprint(admin.bp)
+    # Register blueprints
+    from app.routes import auth
+    app.register_blueprint(auth.bp)
     
     # Error handlers
     @app.errorhandler(404)

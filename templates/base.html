@@ -27,7 +27,6 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('index') }}">Accueil</a>
                     </li>
-                    <!-- Authentication links will be added in later steps -->
                     {% if current_user and current_user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link" href="#">Formations</a>
@@ -36,14 +35,14 @@
                         <a class="nav-link" href="#">Quiz</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Déconnexion</a>
+                        <a class="nav-link" href="{{ url_for('auth.profile') }}">Profil</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.logout') }}">Déconnexion</a>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Connexion</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Inscription</a>
+                        <a class="nav-link" href="{{ url_for('auth.login') }}">Connexion</a>
                     </li>
                     {% endif %}
                 </ul>

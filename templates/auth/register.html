@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Inscription - {{ app_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2>Inscription</h2>
+            <p class="text-muted">Créez votre compte personnel</p>
+        </div>
+        
+        <form method="POST" action="{{ url_for('auth.register') }}" class="auth-form">
+            <!-- CSRF Token -->
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token }}">
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="first_name" class="form-label">Prénom</label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="first_name" 
+                        name="first_name"
+                        placeholder="Votre prénom">
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="last_name" class="form-label">Nom</label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="last_name" 
+                        name="last_name"
+                        placeholder="Votre nom">
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="username" class="form-label">Nom d'utilisateur *</label>
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    id="username" 
+                    name="username" 
+                    required 
+                    autofocus
+                    minlength="3"
+                    placeholder="Choisissez un nom d'utilisateur">
+                <small class="form-text text-muted">Au moins 3 caractères</small>
+            </div>
+            
+            <div class="mb-3">
+                <label for="email" class="form-label">Adresse email *</label>
+                <input 
+                    type="email" 
+                    class="form-control" 
+                    id="email" 
+                    name="email" 
+                    required
+                    placeholder="votre.email@exemple.com">
+            </div>
+            
+            <div class="mb-3">
+                <label for="password" class="form-label">Mot de passe *</label>
+                <input 
+                    type="password" 
+                    class="form-control" 
+                    id="password" 
+                    name="password" 
+                    required
+                    minlength="8"
+                    placeholder="Choisissez un mot de passe sécurisé">
+                <small class="form-text text-muted">Au moins 8 caractères</small>
+            </div>
+            
+            <div class="mb-3">
+                <label for="password_confirm" class="form-label">Confirmer le mot de passe *</label>
+                <input 
+                    type="password" 
+                    class="form-control" 
+                    id="password_confirm" 
+                    name="password_confirm" 
+                    required
+                    minlength="8"
+                    placeholder="Répétez votre mot de passe">
+            </div>
+            
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    S'inscrire
+                </button>
+            </div>
+            
+            <div class="auth-footer">
+                <p class="text-center mt-3 mb-0">
+                    Déjà un compte? 
+                    <a href="{{ url_for('auth.login') }}">Se connecter</a>
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

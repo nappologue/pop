@@ -1,0 +1,226 @@
+/* Authentication Pages Styling */
+
+/* Login and Register Pages */
+.auth-container {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 450px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    margin: 0 auto;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-header h2 {
+    color: #333;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.auth-header p {
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+.auth-form .form-label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.auth-form .form-control {
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    font-size: 0.95rem;
+}
+
+.auth-form .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.auth-form .form-check-label {
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.auth-form .btn-lg {
+    padding: 12px 20px;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.auth-footer {
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+    margin-top: 20px;
+}
+
+.auth-footer a {
+    color: #0d6efd;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Profile Page */
+.profile-container {
+    padding: 20px 0;
+}
+
+.profile-card {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: 12px;
+}
+
+.profile-avatar {
+    margin: 20px 0;
+}
+
+.profile-info {
+    text-align: left;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.profile-info .info-item {
+    padding: 8px 0;
+}
+
+.profile-info .info-item strong {
+    color: #495057;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.profile-info .badge {
+    font-size: 0.9rem;
+    padding: 6px 12px;
+}
+
+/* Statistics Card */
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.stat-value {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* Card Styling */
+.card {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+    border: none;
+    padding: 15px 20px;
+}
+
+.card-body {
+    padding: 25px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .auth-card {
+        padding: 30px 20px;
+    }
+    
+    .profile-container {
+        padding: 10px;
+    }
+    
+    .profile-info {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 576px) {
+    .auth-container {
+        padding: 10px;
+    }
+    
+    .auth-card {
+        padding: 25px 15px;
+    }
+    
+    .auth-header h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Animations */
+.auth-card {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Form validation styles */
+.form-control.is-invalid {
+    border-color: #dc3545;
+}
+
+.form-control.is-valid {
+    border-color: #198754;
+}
+
+/* Progress bar styling */
+.progress {
+    height: 25px;
+    border-radius: 8px;
+}
+
+.progress-bar {
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
