@@ -11,14 +11,60 @@ until pg_isready -h postgres -p 5432 -U "${POSTGRES_USER}"; do
 done
 echo "PostgreSQL is up and running!"
 
-# Run database migrations
-echo "Running database migrations..."
+# Database initialization and migrations
 cd /app
-if [ ! -d "migrations/versions" ]; then
-  echo "Initializing Flask-Migrate..."
-  flask db init || echo "Flask-Migrate already initialized or error occurred"
+
+# Check if Flask-Migrate is properly initialized
+if [ ! -f "migrations/env.py" ]; then
+  echo "Initializing Flask-Migrate (first run)..."
+  
+  # Remove incomplete migrations directory if it exists
+  if [ -d "migrations" ]; then
+    echo "Removing incomplete migrations directory..."
+    rm -rf migrations
+  fi
+  
+  # Initialize Flask-Migrate
+  echo "Creating migrations directory..."
+  if ! flask db init; then
+    echo "✗ Error: Failed to initialize Flask-Migrate"
+    exit 1
+  fi
+  echo "✓ Created migrations directory"
+  
+  # Create initial migration
+  echo "Generating initial migration..."
+  if ! flask db migrate -m "Initial database schema with authentication and RBAC"; then
+    echo "✗ Error: Failed to generate initial migration"
+    exit 1
+  fi
+  echo "✓ Generated initial migration"
+  
+  # Apply migrations
+  echo "Applying database migrations..."
+  if ! flask db upgrade; then
+    echo "✗ Error: Failed to apply migrations"
+    exit 1
+  fi
+  echo "✓ Applied database migrations"
+  
+  # Initialize database with roles and admin user
+  echo "Initializing database with roles and admin user..."
+  if ! python init_db.py; then
+    echo "✗ Error: Failed to initialize database"
+    exit 1
+  fi
+  echo "✓ Database initialized successfully"
+  
+else
+  # Migrations already initialized, just run upgrades
+  echo "Running database migrations..."
+  if ! flask db upgrade; then
+    echo "✗ Error: Failed to apply migrations"
+    exit 1
+  fi
+  echo "✓ Database is up to date"
 fi
-flask db upgrade || echo "No migrations to apply or error occurred"
 
 # Configure SSL based on MODE
 if [ "$MODE" = "PROD" ]; then

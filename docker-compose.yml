@@ -22,6 +22,11 @@ services:
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
       - APP_NAME=${APP_NAME}
       - ITEMS_PER_PAGE=${ITEMS_PER_PAGE}
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ADMIN_FIRST_NAME=${ADMIN_FIRST_NAME}
+      - ADMIN_LAST_NAME=${ADMIN_LAST_NAME}
     volumes:
       - ./app:/app/app
       - ./templates:/app/templates
