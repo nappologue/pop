@@ -97,8 +97,14 @@ def create_app(config=None):
     from app.routes import training
     app.register_blueprint(training.bp)
     
+    from app.routes import quiz
+    app.register_blueprint(quiz.bp)
+    
     from app.routes.admin import training as admin_training
     app.register_blueprint(admin_training.bp)
+    
+    from app.routes.admin import quiz as admin_quiz
+    app.register_blueprint(admin_quiz.bp)
     
     # Error handlers
     @app.errorhandler(404)
