@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}Résultats - {{ quiz.title }} - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Score Display -->
+            <div class="card text-center mb-4 {% if attempt.passed %}border-success{% else %}border-danger{% endif %}" style="border-width: 3px;">
+                <div class="card-body py-5">
+                    <h2 class="mb-3">{{ quiz.title }}</h2>
+                    
+                    <!-- Score -->
+                    <div class="display-1 fw-bold {% if attempt.passed %}text-success{% else %}text-danger{% endif %} mb-3">
+                        {{ "%.0f"|format(attempt.score) }}%
+                    </div>
+                    
+                    <!-- Pass/Fail Badge -->
+                    {% if attempt.passed %}
+                    <div class="mb-3">
+                        <span class="badge bg-success fs-4 px-4 py-2">
+                            <i class="bi bi-check-circle-fill"></i> RÉUSSI
+                        </span>
+                    </div>
+                    <p class="lead">Félicitations! Vous avez réussi le quiz.</p>
+                    {% else %}
+                    <div class="mb-3">
+                        <span class="badge bg-danger fs-4 px-4 py-2">
+                            <i class="bi bi-x-circle-fill"></i> ÉCHOUÉ
+                        </span>
+                    </div>
+                    <p class="lead">Vous n'avez pas atteint le score minimum de {{ quiz.minimum_score }}%.</p>
+                    {% endif %}
+
+                    <!-- Stats -->
+                    <div class="row mt-4">
+                        <div class="col-md-4">
+                            <div class="stat-item">
+                                <i class="bi bi-check-circle text-success fs-3"></i>
+                                <h4 class="mt-2">{{ feedback.correct_count }}</h4>
+                                <small class="text-muted">Réponses correctes</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-item">
+                                <i class="bi bi-x-circle text-danger fs-3"></i>
+                                <h4 class="mt-2">{{ feedback.incorrect_count }}</h4>
+                                <small class="text-muted">Réponses incorrectes</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-item">
+                                <i class="bi bi-star text-warning fs-3"></i>
+                                <h4 class="mt-2">{{ "%.0f"|format(attempt.score_points) }} / {{ feedback.total_points }}</h4>
+                                <small class="text-muted">Points obtenus</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Completion Time -->
+                    {% if attempt.completed_at and attempt.started_at %}
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="bi bi-clock"></i>
+                            Temps écoulé: {{ ((attempt.completed_at - attempt.started_at).total_seconds() / 60)|round(1) }} minutes
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Question-by-Question Review -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Revue détaillée</h4>
+                </div>
+                <div class="card-body">
+                    {% for item in feedback.questions %}
+                    <div class="question-review mb-4 pb-4 {% if not loop.last %}border-bottom{% endif %}">
+                        <!-- Question Header -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="mb-0">Question {{ loop.index }}</h5>
+                            {% if item.is_correct %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle"></i> Correct
+                            </span>
+                            {% else %}
+                            <span class="badge bg-danger">
+                                <i class="bi bi-x-circle"></i> Incorrect
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Question Text -->
+                        <p class="fw-bold">{{ item.question_text }}</p>
+
+                        <!-- User's Answer -->
+                        <div class="mb-3">
+                            <strong>Votre réponse:</strong>
+                            <div class="alert {% if item.is_correct %}alert-success{% else %}alert-danger{% endif %} mt-2">
+                                {% if item.user_answer_text %}
+                                    {{ item.user_answer_text }}
+                                {% else %}
+                                    <em>Aucune réponse fournie</em>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Correct Answer (if wrong) -->
+                        {% if not item.is_correct %}
+                        <div class="mb-3">
+                            <strong>Réponse correcte:</strong>
+                            <div class="alert alert-info mt-2">
+                                {{ item.correct_answer_text }}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Explanation (if available and wrong) -->
+                        {% if not item.is_correct and item.explanation %}
+                        <div class="mt-3">
+                            <strong>Explication:</strong>
+                            <p class="text-muted mb-0 mt-2">{{ item.explanation }}</p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Points -->
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                Points: {{ item.points_earned }} / {{ item.points_possible }}
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="text-center mb-4">
+                <div class="btn-group" role="group">
+                    <a href="{{ url_for('training.list_trainings') }}" class="btn btn-primary">
+                        <i class="bi bi-arrow-left"></i> Retourner aux Formations
+                    </a>
+                    
+                    {% if not attempt.passed %}
+                        {% set can_retry, retry_reason = quiz|can_retake_quiz(current_user.id) %}
+                        {% if can_retry %}
+                        <a href="{{ url_for('quiz.start_quiz_page', quiz_id=quiz.id) }}" class="btn btn-warning">
+                            <i class="bi bi-arrow-clockwise"></i> Réessayer
+                        </a>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if attempt.passed %}
+                    <button type="button" class="btn btn-success" onclick="printCertificate()">
+                        <i class="bi bi-printer"></i> Imprimer le certificat
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Print Certificate Section -->
+<div id="certificateSection" style="display: none;">
+    <div class="certificate-container">
+        <div class="certificate-border">
+            <div class="certificate-content text-center">
+                <h1 class="certificate-title">CERTIFICAT DE RÉUSSITE</h1>
+                <div class="certificate-body">
+                    <p class="certificate-text">Ceci certifie que</p>
+                    <h2 class="certificate-name">{{ current_user.full_name or current_user.username }}</h2>
+                    <p class="certificate-text">a complété avec succès</p>
+                    <h3 class="certificate-course">{{ quiz.title }}</h3>
+                    <p class="certificate-text">avec un score de</p>
+                    <h2 class="certificate-score">{{ "%.0f"|format(attempt.score) }}%</h2>
+                    <p class="certificate-date">{{ attempt.completed_at.strftime('%d %B %Y') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<style>
+    .stat-item {
+        padding: 1rem;
+    }
+
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        
+        #certificateSection,
+        #certificateSection * {
+            visibility: visible;
+            display: block !important;
+        }
+        
+        #certificateSection {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        
+        .certificate-container {
+            width: 210mm;
+            height: 297mm;
+            padding: 20mm;
+            margin: 0 auto;
+        }
+    }
+
+    .certificate-border {
+        border: 5px double #0d6efd;
+        padding: 2rem;
+        height: 100%;
+    }
+
+    .certificate-title {
+        color: #0d6efd;
+        font-size: 2.5rem;
+        margin: 2rem 0;
+        font-weight: bold;
+    }
+
+    .certificate-name {
+        color: #198754;
+        font-size: 2rem;
+        margin: 1rem 0;
+        font-weight: bold;
+    }
+
+    .certificate-course {
+        color: #0d6efd;
+        font-size: 1.5rem;
+        margin: 1rem 0;
+    }
+
+    .certificate-score {
+        color: #198754;
+        font-size: 2.5rem;
+        margin: 1rem 0;
+        font-weight: bold;
+    }
+
+    .certificate-text {
+        font-size: 1.2rem;
+        margin: 0.5rem 0;
+    }
+
+    .certificate-date {
+        margin-top: 2rem;
+        font-style: italic;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function printCertificate() {
+        window.print();
+    }
+</script>
+{% endblock %}

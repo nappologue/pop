@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Formations - Administration - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">Gestion des Formations</h1>
+            <p class="lead text-muted">Créer, modifier et gérer toutes les formations</p>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('admin_training.create_form') }}" class="btn btn-success btn-lg">
+                <i class="bi bi-plus-circle"></i> Créer une Formation
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form id="filterForm" class="row g-3">
+                <div class="col-md-3">
+                    <label for="publishedFilter" class="form-label">Statut de publication</label>
+                    <select class="form-select" id="publishedFilter" name="is_published">
+                        <option value="">Tous</option>
+                        <option value="true">Publiées</option>
+                        <option value="false">Brouillons</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="mandatoryFilter" class="form-label">Type</label>
+                    <select class="form-select" id="mandatoryFilter" name="is_mandatory">
+                        <option value="">Tous</option>
+                        <option value="true">Obligatoires</option>
+                        <option value="false">Optionnelles</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="searchInput" class="form-label">Rechercher</label>
+                    <input type="text" class="form-control" id="searchInput" name="search" placeholder="Titre ou description...">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="button" class="btn btn-primary d-block w-100" onclick="applyFilters()">
+                        <i class="bi bi-funnel"></i> Filtrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div class="card mb-4" id="bulkActionsCard" style="display: none;">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col">
+                    <span id="selectedCount">0</span> formation(s) sélectionnée(s)
+                </div>
+                <div class="col-auto">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-success" onclick="bulkPublish()">
+                            <i class="bi bi-eye"></i> Publier
+                        </button>
+                        <button type="button" class="btn btn-warning" onclick="bulkUnpublish()">
+                            <i class="bi bi-eye-slash"></i> Dépublier
+                        </button>
+                        <button type="button" class="btn btn-danger" onclick="bulkDelete()">
+                            <i class="bi bi-trash"></i> Supprimer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trainings Table -->
+    <div class="card">
+        <div class="card-body">
+            <table id="trainingsTable" class="table table-hover">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll"></th>
+                        <th>Titre</th>
+                        <th>Créateur</th>
+                        <th>Statut</th>
+                        <th>Type</th>
+                        <th>Utilisateurs assignés</th>
+                        <th>Date de création</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for training in trainings %}
+                    <tr>
+                        <td><input type="checkbox" class="training-checkbox" value="{{ training.id }}"></td>
+                        <td>
+                            <strong>{{ training.title }}</strong>
+                            <br>
+                            <small class="text-muted">{{ training.slide_count }} diapositives</small>
+                        </td>
+                        <td>{{ training.creator.full_name or training.creator.username }}</td>
+                        <td>
+                            {% if training.is_published %}
+                                <span class="badge bg-success">Publiée</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Brouillon</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if training.is_mandatory %}
+                                <span class="badge bg-danger">Obligatoire</span>
+                            {% else %}
+                                <span class="badge bg-info">Optionnelle</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">{{ training.progress_records.count() }} utilisateurs</span>
+                        </td>
+                        <td>{{ training.created_at.strftime('%d/%m/%Y') }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{{ url_for('admin_training.edit_form', training_id=training.id) }}" 
+                                   class="btn btn-outline-primary" 
+                                   title="Modifier">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{{ url_for('admin_training.preview_training', training_id=training.id) }}" 
+                                   class="btn btn-outline-info" 
+                                   title="Prévisualiser">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if training.is_published %}
+                                <button type="button" 
+                                        class="btn btn-outline-warning" 
+                                        title="Dépublier"
+                                        onclick="unpublishTraining({{ training.id }})">
+                                    <i class="bi bi-eye-slash"></i>
+                                </button>
+                                {% else %}
+                                <button type="button" 
+                                        class="btn btn-outline-success" 
+                                        title="Publier"
+                                        onclick="publishTraining({{ training.id }})">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                {% endif %}
+                                <button type="button" 
+                                        class="btn btn-outline-danger" 
+                                        title="Supprimer"
+                                        onclick="deleteTraining({{ training.id }})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if pagination.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ pagination.prev_num }}">Précédent</a>
+            </li>
+            {% endif %}
+            
+            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                    {% if page_num == pagination.page %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+                    </li>
+                    {% endif %}
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if pagination.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ pagination.next_num }}">Suivant</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+<script>
+    $(document).ready(function() {
+        // Initialize DataTable with French locale
+        const table = $('#trainingsTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
+            },
+            order: [[6, 'desc']], // Sort by creation date descending
+            pageLength: 25,
+            columnDefs: [
+                { orderable: false, targets: [0, 7] } // Disable sorting for checkbox and actions
+            ]
+        });
+
+        // Select all checkbox
+        $('#selectAll').on('change', function() {
+            $('.training-checkbox').prop('checked', this.checked);
+            updateBulkActions();
+        });
+
+        // Individual checkboxes
+        $('.training-checkbox').on('change', function() {
+            updateBulkActions();
+        });
+    });
+
+    function updateBulkActions() {
+        const selected = $('.training-checkbox:checked').length;
+        $('#selectedCount').text(selected);
+        if (selected > 0) {
+            $('#bulkActionsCard').show();
+        } else {
+            $('#bulkActionsCard').hide();
+        }
+    }
+
+    function applyFilters() {
+        const params = new URLSearchParams();
+        const published = $('#publishedFilter').val();
+        const mandatory = $('#mandatoryFilter').val();
+        const search = $('#searchInput').val();
+        
+        if (published) params.append('is_published', published);
+        if (mandatory) params.append('is_mandatory', mandatory);
+        if (search) params.append('search', search);
+        
+        window.location.href = '?' + params.toString();
+    }
+
+    function publishTraining(trainingId) {
+        if (confirm('Voulez-vous publier cette formation?')) {
+            $.ajax({
+                url: `/admin/trainings/${trainingId}/publish`,
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert('Erreur: ' + (xhr.responseJSON?.error || 'Impossible de publier la formation'));
+                }
+            });
+        }
+    }
+
+    function unpublishTraining(trainingId) {
+        if (confirm('Voulez-vous dépublier cette formation?')) {
+            $.ajax({
+                url: `/admin/trainings/${trainingId}/unpublish`,
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert('Erreur: ' + (xhr.responseJSON?.error || 'Impossible de dépublier la formation'));
+                }
+            });
+        }
+    }
+
+    function deleteTraining(trainingId) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette formation? Cette action est irréversible.')) {
+            $.ajax({
+                url: `/admin/trainings/${trainingId}/delete`,
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert('Erreur: ' + (xhr.responseJSON?.error || 'Impossible de supprimer la formation'));
+                }
+            });
+        }
+    }
+
+    function bulkPublish() {
+        const selectedIds = $('.training-checkbox:checked').map(function() {
+            return $(this).val();
+        }).get();
+        
+        if (confirm(`Voulez-vous publier ${selectedIds.length} formation(s)?`)) {
+            // Implementation for bulk publish
+            alert('Fonctionnalité en développement');
+        }
+    }
+
+    function bulkUnpublish() {
+        const selectedIds = $('.training-checkbox:checked').map(function() {
+            return $(this).val();
+        }).get();
+        
+        if (confirm(`Voulez-vous dépublier ${selectedIds.length} formation(s)?`)) {
+            // Implementation for bulk unpublish
+            alert('Fonctionnalité en développement');
+        }
+    }
+
+    function bulkDelete() {
+        const selectedIds = $('.training-checkbox:checked').map(function() {
+            return $(this).val();
+        }).get();
+        
+        if (confirm(`Êtes-vous sûr de vouloir supprimer ${selectedIds.length} formation(s)? Cette action est irréversible.`)) {
+            // Implementation for bulk delete
+            alert('Fonctionnalité en développement');
+        }
+    }
+</script>
+{% endblock %}

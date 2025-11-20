@@ -9,10 +9,12 @@
     --info-color: #0dcaf0;
     --light-color: #f8f9fa;
     --dark-color: #212529;
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Global Styles */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: var(--font-family);
     background-color: #f5f5f5;
     min-height: 100vh;
     display: flex;
@@ -39,6 +41,16 @@ body {
     border: none;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background-color: var(--light-color);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 /* Button Styling */
@@ -52,6 +64,14 @@ body {
 .btn:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-group .btn {
+    transform: none;
+}
+
+.btn-group .btn:hover {
+    transform: none;
 }
 
 /* Alert Styling */
@@ -82,9 +102,278 @@ main {
     flex: 1;
 }
 
+/* Form Styles */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+/* Badge Styles */
+.badge {
+    padding: 0.35em 0.65em;
+    font-weight: 500;
+}
+
+/* Training Player Styles */
+.training-player {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.player-header {
+    background-color: var(--dark-color);
+    color: white;
+    padding: 1rem 0;
+}
+
+.player-content {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+    padding: 2rem;
+}
+
+.player-controls {
+    background-color: white;
+    border-top: 1px solid #dee2e6;
+    padding: 1rem 0;
+}
+
+.slide-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-height: 400px;
+}
+
+/* Quiz Player Styles */
+.quiz-player {
+    min-height: 100vh;
+}
+
+.quiz-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.timer {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.timer.warning {
+    color: var(--warning-color);
+    animation: pulse 1s infinite;
+}
+
+.timer.danger {
+    color: var(--danger-color);
+    animation: pulse 0.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.question-text {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+}
+
+.answer-option {
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.answer-option:hover {
+    border-color: var(--primary-color);
+    background-color: #f8f9fa;
+}
+
+.answer-option.selected {
+    border-color: var(--primary-color);
+    background-color: #e7f1ff;
+}
+
+/* Training Cards */
+.training-card {
+    transition: transform 0.2s;
+}
+
+.training-card:hover {
+    transform: translateY(-5px);
+}
+
+/* DataTables Custom Styles */
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 0.5rem 0.75rem;
+    margin: 0 0.25rem;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    margin-left: 0.5rem;
+    border-radius: 4px;
+}
+
+/* Admin Panel Styles */
+.drag-handle {
+    cursor: move;
+    color: var(--secondary-color);
+}
+
+.slide-item {
+    transition: opacity 0.2s;
+}
+
+.slide-item.dragging {
+    opacity: 0.5;
+}
+
+/* Statistics Cards */
+.stat-item {
+    padding: 1rem;
+    text-align: center;
+}
+
+/* Progress Bars */
+.progress {
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    transition: width 0.6s ease;
+}
+
+/* Certificate Styles (Print) */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    
+    #certificateSection,
+    #certificateSection * {
+        visibility: visible;
+    }
+    
+    #certificateSection {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+    
+    .certificate-container {
+        width: 210mm;
+        height: 297mm;
+        padding: 20mm;
+        margin: 0 auto;
+    }
+    
+    .certificate-border {
+        border: 5px double var(--primary-color);
+        padding: 2rem;
+        height: 100%;
+    }
+    
+    .certificate-title {
+        color: var(--primary-color);
+        font-size: 2.5rem;
+        margin: 2rem 0;
+        font-weight: bold;
+    }
+    
+    .certificate-name {
+        color: var(--success-color);
+        font-size: 2rem;
+        margin: 1rem 0;
+        font-weight: bold;
+    }
+    
+    .certificate-course {
+        color: var(--primary-color);
+        font-size: 1.5rem;
+        margin: 1rem 0;
+    }
+    
+    .certificate-score {
+        color: var(--success-color);
+        font-size: 2.5rem;
+        margin: 1rem 0;
+        font-weight: bold;
+    }
+}
+
+/* Loading Spinner */
+.spinner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--secondary-color);
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .navbar-brand {
         font-size: 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .player-content {
+        padding: 1rem;
+    }
+    
+    .slide-content {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .display-1 {
+        font-size: 3rem;
+    }
+    
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .stat-item h2 {
+        font-size: 1.5rem;
     }
 }

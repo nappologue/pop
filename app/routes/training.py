@@ -73,7 +73,7 @@ def view_training(training_id):
             return redirect(url_for('training.list_trainings'))
     
     return render_template(
-        'training/view.html',
+        'training/player.html',
         training=training,
         progress=progress
     )

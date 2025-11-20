@@ -37,7 +37,7 @@ def start_quiz_page(quiz_id):
     ).all()
     
     return render_template(
-        'quiz/start.html',
+        'quiz/instructions.html',
         quiz=quiz,
         can_retake=can_retake,
         retake_reason=reason,
@@ -133,7 +133,7 @@ def take_quiz(quiz_id, attempt_id):
             })
     
     return render_template(
-        'quiz/take.html',
+        'quiz/player.html',
         quiz=attempt.quiz,
         attempt=attempt,
         questions=questions_display,

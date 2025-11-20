@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+
+{% block title %}{% if training %}Modifier{% else %}Créer{% endif %} une Formation - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">{% if training %}Modifier la Formation{% else %}Créer une Nouvelle Formation{% endif %}</h1>
+            <p class="lead text-muted">Configurez votre formation avec des diapositives interactives</p>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('admin_training.list_trainings') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour à la liste
+            </a>
+        </div>
+    </div>
+
+    <form id="trainingForm" method="POST" action="{% if training %}{{ url_for('admin_training.update_training', training_id=training.id) }}{% else %}{{ url_for('admin_training.create_training') }}{% endif %}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <!-- Basic Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Informations générales</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label for="title" class="form-label">Titre de la formation *</label>
+                        <input type="text" class="form-control" id="title" name="title" 
+                               value="{% if training %}{{ training.title }}{% endif %}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Type</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_mandatory" name="is_mandatory" 
+                                   {% if training and training.is_mandatory %}checked{% endif %}>
+                            <label class="form-check-label" for="is_mandatory">
+                                Formation obligatoire
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="4">{% if training %}{{ training.description }}{% endif %}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Target Audience -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Public cible</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Sélectionnez les critères pour cibler automatiquement les utilisateurs. Laissez vide pour cibler tous les utilisateurs.</p>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="target_roles" class="form-label">Rôles</label>
+                        <select multiple class="form-select" id="target_roles" name="target_roles" size="4">
+                            {% for role in roles %}
+                            <option value="{{ role.name }}" 
+                                    {% if training and role.name in training.target_roles %}selected{% endif %}>
+                                {{ role.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">Maintenez Ctrl/Cmd pour sélectionner plusieurs</small>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="target_teams" class="form-label">Équipes</label>
+                        <select multiple class="form-select" id="target_teams" name="target_teams" size="4">
+                            {% for team in teams %}
+                            <option value="{{ team }}" 
+                                    {% if training and team in training.target_teams %}selected{% endif %}>
+                                {{ team }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">Maintenez Ctrl/Cmd pour sélectionner plusieurs</small>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="target_locations" class="form-label">Localisations</label>
+                        <select multiple class="form-select" id="target_locations" name="target_locations" size="4">
+                            {% for location in locations %}
+                            <option value="{{ location }}" 
+                                    {% if training and location in training.target_locations %}selected{% endif %}>
+                                {{ location }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">Maintenez Ctrl/Cmd pour sélectionner plusieurs</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide Builder -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Diapositives</h5>
+                <button type="button" class="btn btn-sm btn-success" id="addSlideBtn">
+                    <i class="bi bi-plus-circle"></i> Ajouter une diapositive
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="slidesList">
+                    {% if training and training.slides %}
+                        {% for slide in training.slides %}
+                        <div class="slide-item card mb-3" data-index="{{ loop.index0 }}">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-grip-vertical drag-handle me-2" style="cursor: move;"></i>
+                                    <strong>Diapositive {{ loop.index }}</strong>
+                                </div>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-secondary move-up-btn" title="Monter">
+                                        <i class="bi bi-arrow-up"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary move-down-btn" title="Descendre">
+                                        <i class="bi bi-arrow-down"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger delete-slide-btn" title="Supprimer">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Type de diapositive</label>
+                                        <select class="form-select slide-type" name="slide_type[]">
+                                            <option value="text" {% if slide.type == 'text' %}selected{% endif %}>Texte</option>
+                                            <option value="video" {% if slide.type == 'video' %}selected{% endif %}>Vidéo</option>
+                                            <option value="image" {% if slide.type == 'image' %}selected{% endif %}>Image</option>
+                                            <option value="quiz" {% if slide.type == 'quiz' %}selected{% endif %}>Quiz</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-9 mb-3">
+                                        <label class="form-label">Contenu</label>
+                                        <textarea class="form-control slide-content" name="slide_content[]" rows="4">{{ slide.content }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div id="noSlidesMessage" class="text-center text-muted py-5" {% if training and training.slides %}style="display: none;"{% endif %}>
+                    <i class="bi bi-file-earmark-slides fs-1"></i>
+                    <p class="mt-2">Aucune diapositive. Cliquez sur "Ajouter une diapositive" pour commencer.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden field for slides JSON -->
+        <input type="hidden" id="slidesData" name="slides">
+
+        <!-- Action Buttons -->
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary" onclick="saveDraft()">
+                        <i class="bi bi-save"></i> Enregistrer comme brouillon
+                    </button>
+                    <div>
+                        {% if training %}
+                        <a href="{{ url_for('admin_training.preview_training', training_id=training.id) }}" 
+                           class="btn btn-info me-2" target="_blank">
+                            <i class="bi bi-eye"></i> Prévisualiser
+                        </a>
+                        {% endif %}
+                        <button type="button" class="btn btn-success" onclick="publishTraining()">
+                            <i class="bi bi-check-circle"></i> {% if training and training.is_published %}Mettre à jour et Publier{% else %}Publier{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<style>
+    .slide-item {
+        border: 1px solid #dee2e6;
+    }
+    
+    .drag-handle {
+        cursor: move;
+    }
+    
+    .slide-item.dragging {
+        opacity: 0.5;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- SortableJS for drag and drop -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+<script>
+    let slideCounter = {{ training.slides|length if training and training.slides else 0 }};
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Sortable for drag and drop
+        const slidesList = document.getElementById('slidesList');
+        if (slidesList) {
+            new Sortable(slidesList, {
+                handle: '.drag-handle',
+                animation: 150,
+                onEnd: function() {
+                    updateSlideNumbers();
+                }
+            });
+        }
+
+        // Add slide button
+        document.getElementById('addSlideBtn').addEventListener('click', function() {
+            addSlide();
+        });
+
+        // Update slide numbers on load
+        updateSlideNumbers();
+    });
+
+    function addSlide(type = 'text', content = '') {
+        slideCounter++;
+        const slideHTML = `
+            <div class="slide-item card mb-3" data-index="${slideCounter}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-grip-vertical drag-handle me-2" style="cursor: move;"></i>
+                        <strong class="slide-number">Diapositive ${slideCounter}</strong>
+                    </div>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-secondary move-up-btn" title="Monter">
+                            <i class="bi bi-arrow-up"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary move-down-btn" title="Descendre">
+                            <i class="bi bi-arrow-down"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-danger delete-slide-btn" title="Supprimer">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Type de diapositive</label>
+                            <select class="form-select slide-type">
+                                <option value="text" ${type === 'text' ? 'selected' : ''}>Texte</option>
+                                <option value="video" ${type === 'video' ? 'selected' : ''}>Vidéo</option>
+                                <option value="image" ${type === 'image' ? 'selected' : ''}>Image</option>
+                                <option value="quiz" ${type === 'quiz' ? 'selected' : ''}>Quiz</option>
+                            </select>
+                        </div>
+                        <div class="col-md-9 mb-3">
+                            <label class="form-label">Contenu</label>
+                            <textarea class="form-control slide-content" rows="4">${content}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('slidesList').insertAdjacentHTML('beforeend', slideHTML);
+        document.getElementById('noSlidesMessage').style.display = 'none';
+        
+        // Attach event listeners to new slide
+        const newSlide = document.getElementById('slidesList').lastElementChild;
+        attachSlideEvents(newSlide);
+    }
+
+    function attachSlideEvents(slideElement) {
+        // Delete button
+        slideElement.querySelector('.delete-slide-btn').addEventListener('click', function() {
+            if (confirm('Voulez-vous vraiment supprimer cette diapositive?')) {
+                slideElement.remove();
+                updateSlideNumbers();
+                checkNoSlides();
+            }
+        });
+
+        // Move up button
+        slideElement.querySelector('.move-up-btn').addEventListener('click', function() {
+            const prev = slideElement.previousElementSibling;
+            if (prev) {
+                slideElement.parentNode.insertBefore(slideElement, prev);
+                updateSlideNumbers();
+            }
+        });
+
+        // Move down button
+        slideElement.querySelector('.move-down-btn').addEventListener('click', function() {
+            const next = slideElement.nextElementSibling;
+            if (next) {
+                slideElement.parentNode.insertBefore(next, slideElement);
+                updateSlideNumbers();
+            }
+        });
+    }
+
+    function updateSlideNumbers() {
+        const slides = document.querySelectorAll('.slide-item');
+        slides.forEach((slide, index) => {
+            slide.querySelector('.slide-number').textContent = `Diapositive ${index + 1}`;
+        });
+    }
+
+    function checkNoSlides() {
+        const slides = document.querySelectorAll('.slide-item');
+        if (slides.length === 0) {
+            document.getElementById('noSlidesMessage').style.display = 'block';
+        }
+    }
+
+    function collectSlidesData() {
+        const slides = [];
+        document.querySelectorAll('.slide-item').forEach(function(slideElement) {
+            const type = slideElement.querySelector('.slide-type').value;
+            const content = slideElement.querySelector('.slide-content').value;
+            
+            slides.push({
+                type: type,
+                content: content
+            });
+        });
+        return slides;
+    }
+
+    function saveDraft() {
+        const slidesData = collectSlidesData();
+        document.getElementById('slidesData').value = JSON.stringify(slidesData);
+        
+        // Set published to false
+        document.getElementById('trainingForm').submit();
+    }
+
+    function publishTraining() {
+        const slidesData = collectSlidesData();
+        
+        if (slidesData.length === 0) {
+            alert('Veuillez ajouter au moins une diapositive avant de publier.');
+            return;
+        }
+        
+        document.getElementById('slidesData').value = JSON.stringify(slidesData);
+        document.getElementById('trainingForm').submit();
+    }
+
+    // Attach events to existing slides
+    document.querySelectorAll('.slide-item').forEach(function(slide) {
+        attachSlideEvents(slide);
+    });
+</script>
+{% endblock %}
