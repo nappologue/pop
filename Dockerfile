@@ -31,7 +31,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY --chown=appuser:appuser app/ /app/app/
 COPY --chown=appuser:appuser templates/ /app/templates/
-COPY --chown=appuser:appuser migrations/ /app/migrations/
 COPY --chown=appuser:appuser supervisord.conf /app/
 COPY --chown=appuser:appuser init_db.py /app/
 
