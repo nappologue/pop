@@ -59,6 +59,33 @@ def create_app(config=None):
     login_manager.login_message = 'Veuillez vous connecter pour accéder à cette page.'
     login_manager.login_message_category = 'info'
     
+    # User loader for Flask-Login
+    @login_manager.user_loader
+    def load_user(user_id):
+        """Load user by ID for Flask-Login."""
+        from app.models import User
+        return User.query.get(int(user_id))
+    
+    # Before request handler for RBAC and session management
+    @app.before_request
+    def before_request():
+        """
+        Execute before each request.
+        
+        Updates last_accessed_at for active users and can enforce RBAC rules.
+        """
+        from flask_login import current_user
+        from datetime import datetime
+        
+        if current_user.is_authenticated:
+            # Check if user is active
+            if not current_user.is_active:
+                from flask_login import logout_user
+                from flask import flash, redirect, url_for
+                logout_user()
+                flash('Votre compte a été désactivé. Veuillez contacter un administrateur.', 'error')
+                return redirect(url_for('auth.login'))
+    
     # Register blueprints (will be added in later steps)
     # from app.routes import auth, training, quiz, admin
     # app.register_blueprint(auth.bp)
