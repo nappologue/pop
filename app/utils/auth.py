@@ -5,9 +5,12 @@ This module provides decorators for protecting routes with authentication
 and role-based access control (RBAC).
 """
 
+import logging
 from functools import wraps
 from flask import flash, redirect, url_for, abort
 from flask_login import current_user
+
+logger = logging.getLogger(__name__)
 
 
 def login_required(f):
@@ -85,7 +88,13 @@ def permission_required(permission):
                 flash('Veuillez vous connecter pour accéder à cette page.', 'warning')
                 return redirect(url_for('auth.login'))
             
+            if not current_user.role:
+                logger.error(f"User {current_user.id} has no role assigned")
+                flash('Vous n\'avez pas les permissions nécessaires pour effectuer cette action.', 'danger')
+                abort(403)
+            
             if not has_permission(current_user, permission):
+                logger.warning(f"User {current_user.id} (role: {current_user.role.name}) denied access to permission: {permission}")
                 flash('Vous n\'avez pas les permissions nécessaires pour effectuer cette action.', 'danger')
                 abort(403)
             

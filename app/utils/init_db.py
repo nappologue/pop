@@ -101,6 +101,27 @@ def create_default_roles():
     else:
         print("- User role already exists")
     
+    # Analyst role - read-only access to dashboards and statistics
+    analyst_role = Role.query.filter_by(name='analyst').first()
+    if not analyst_role:
+        analyst_role = Role(
+            name='analyst',
+            permissions={
+                'view_dashboard': True,
+                'view_all_stats': True,
+                'view_all_trainings': True,
+                'view_all_users': True,
+                'manage_trainings': False,
+                'manage_quizzes': False,
+                'manage_users': False,
+                'manage_roles': False
+            }
+        )
+        db.session.add(analyst_role)
+        print("✓ Created analyst role")
+    else:
+        print("- Analyst role already exists")
+    
     # Commit all roles
     try:
         db.session.commit()

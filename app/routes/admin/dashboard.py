@@ -18,7 +18,7 @@ bp = Blueprint('admin', __name__, url_prefix='/admin')
 @bp.route('/')
 @bp.route('/dashboard')
 @login_required
-@permission_required('manage_trainings')
+@permission_required('view_dashboard')
 def dashboard():
     """
     Admin dashboard with statistics and overview.
@@ -33,7 +33,7 @@ def dashboard():
 
 @bp.route('/statistics')
 @login_required
-@permission_required('manage_trainings')
+@permission_required('view_all_stats')
 def statistics():
     """
     Detailed statistics page.
@@ -45,7 +45,7 @@ def statistics():
 
 @bp.route('/api/statistics/overview')
 @login_required
-@permission_required('manage_trainings')
+@permission_required('view_all_stats')
 def statistics_overview():
     """
     Get overview statistics (AJAX).
@@ -58,7 +58,7 @@ def statistics_overview():
 
 @bp.route('/api/statistics/completions')
 @login_required
-@permission_required('manage_trainings')
+@permission_required('view_all_stats')
 def statistics_completions():
     """
     Get completion statistics over time (AJAX).
@@ -86,7 +86,7 @@ def statistics_completions():
 
 @bp.route('/api/statistics/scores')
 @login_required
-@permission_required('manage_trainings')
+@permission_required('view_all_stats')
 def statistics_scores():
     """
     Get score distribution (AJAX).
@@ -126,7 +126,7 @@ def statistics_scores():
 
 @bp.route('/api/statistics/users')
 @login_required
-@permission_required('manage_trainings')
+@permission_required('view_all_stats')
 def statistics_users():
     """
     Get user statistics data (AJAX).

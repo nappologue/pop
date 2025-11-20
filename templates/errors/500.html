@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}500 - Erreur Serveur - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="error-template">
+                <h1 class="display-1 text-danger">500</h1>
+                <h2>Erreur Interne du Serveur</h2>
+                <div class="error-details mt-3 mb-4">
+                    <p class="lead">Désolé, une erreur inattendue s'est produite sur le serveur.</p>
+                    <p>Nos équipes ont été notifiées et travaillent à résoudre le problème.</p>
+                </div>
+                <div class="error-actions">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-house-door"></i> Retour à l'accueil
+                    </a>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('training.list_trainings') }}" class="btn btn-outline-secondary btn-lg ms-2">
+                        Mes Formations
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
