@@ -110,6 +110,11 @@ def create_app(config=None):
     app.register_blueprint(admin_quiz.bp)
     
     # Error handlers
+    @app.errorhandler(403)
+    def forbidden(error):
+        """Handle forbidden access errors."""
+        return render_template('errors/403.html'), 403
+    
     @app.errorhandler(404)
     def not_found_error(error):
         """Handle 404 errors."""
